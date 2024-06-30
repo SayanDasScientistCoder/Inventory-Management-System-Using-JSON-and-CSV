@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 
 # # Inventory Management System
@@ -10,14 +11,15 @@
 
 # ## Adding Products
 
-# In[5]:
+# In[1]:
+
 
 import os
 import json
 import datetime
 
 
-# In[6]:
+# In[2]:
 
 
 def newId(s):
@@ -34,7 +36,7 @@ def newId(s):
     return i
 
 
-# In[7]:
+# In[3]:
 
 
 def addProduct(name,price,quantity):
@@ -51,7 +53,7 @@ def addProduct(name,price,quantity):
 
 # ## Product Details
 
-# In[5]:
+# In[4]:
 
 
 def productDetails(id:str):
@@ -70,7 +72,7 @@ def productDetails(id:str):
 
 # ## Updating Inventory
 
-# In[7]:
+# In[5]:
 
 
 import pandas as pd
@@ -91,7 +93,7 @@ def updateInventory2(id:int,quantity:int):
         print("Product is not found.")
 
 
-# In[8]:
+# In[6]:
 
 
 def updateInventory(id:str,quantity:int):
@@ -115,7 +117,7 @@ def updateInventory(id:str,quantity:int):
 
 # ## Updating The Unit Price
 
-# In[10]:
+# In[7]:
 
 
 def updatePrice(id:str,price:int):
@@ -136,7 +138,7 @@ def updatePrice(id:str,price:int):
 
 # ## Deleting Products
 
-# In[12]:
+# In[8]:
 
 
 def deleteProduct(id:str):
@@ -169,7 +171,7 @@ def deleteProduct(id:str):
 # "merchant_name2":{"time2":{"contacts":contact,"id":id2,"quantity":100,"total cost":10000},
 #                   "time4":{"contacts":contact,"id":id4,"quantity":1000,"total cost":10000}}}
 
-# In[14]:
+# In[9]:
 
 
 def purchase():
@@ -253,7 +255,7 @@ def purchase():
 # "username2":{"time2":{"contacts":contact,"id":id2,"quantity":100,"total cost":10000},
 #              "time4":{"contacts":contact,"id":id4,"quantity":1000,"total cost":10000}}}
 
-# In[15]:
+# In[12]:
 
 
 def sales():
@@ -266,6 +268,7 @@ def sales():
     un=input("Please enter your user name:- ")
     contact=input("Please enter your contact details:- ")
     timeArray=[]
+    totalCost=0
     
     while(True):
         id=input("Please enter the product id:- ")
@@ -277,6 +280,7 @@ def sales():
             
             
             d=str(datetime.datetime.now())
+            totalCost+=p*q
             
             if un in s:
                 s[un][d]={"contacts":contact,"id":id,"quantity":q,"total cost":(p*q)}
@@ -291,6 +295,13 @@ def sales():
         if(flag=="0"):
             break
     
+    t=totalCost
+    if totalCost>=10000:
+        t=totalCost*0.8
+        for i in timeArray:
+            s[un][i[0]]["total cost"]=s[un][i[0]]["total cost"]*0.8
+    
+        
     fd=open(os.path.dirname(__file__)+"\Sales.json","w")
     fd.write(json.dumps(s))
     fd.close()
@@ -300,8 +311,8 @@ def sales():
     filepath=os.path.dirname(__file__)+"\Sales Receipts\\"+un+" "+str(d.date())+" "+d.strftime("%H-%M-%S.%f")+".csv"
     fd=open(filepath,"a")
     print("_"*200)
-    print("Purchasing Receipt on ",datetime.datetime.now(),":- ",sep="")
-    fd.write("Purchasing Receipt on:-,"+str(datetime.datetime.now())+"\n")
+    print("Sales Receipt on ",datetime.datetime.now(),":- ",sep="")
+    fd.write("Sales Receipt on:-,"+str(datetime.datetime.now())+"\n")
     print("User Name:- "+un,sep="")
     fd.write("User Name:-,"+un+"\n")
     print("User Contact:- "+contact)
@@ -311,24 +322,35 @@ def sales():
     fd.write("Serial Number,Product ID,Product Name,Unit Price,Quantity Purchased,Total Price\n")
     print("_"*200)
     
-    t=0
     for i in range(len(timeArray)):
-        print((i+1),"\t",s[un][timeArray[i][0]]["id"],timeArray[i][1],timeArray[i][2],"\t",s[un][timeArray[i][0]]["quantity"],"\t",s[un][timeArray[i][0]]["total cost"],sep="\t")
-        fd.write(str(i+1)+","+s[un][timeArray[i][0]]["id"]+","+timeArray[i][1]+","+str(timeArray[i][2])+","+str(s[un][timeArray[i][0]]["quantity"])+","+str(s[un][timeArray[i][0]]["total cost"])+"\n")
-        t+=s[un][timeArray[i][0]]["total cost"]
+        if t==totalCost:
+            print((i+1),"\t",s[un][timeArray[i][0]]["id"],timeArray[i][1],timeArray[i][2],"\t",s[un][timeArray[i][0]]["quantity"],"\t",s[un][timeArray[i][0]]["total cost"],sep="\t")
+            fd.write(str(i+1)+","+s[un][timeArray[i][0]]["id"]+","+timeArray[i][1]+","+str(timeArray[i][2])+","+str(s[un][timeArray[i][0]]["quantity"])+","+str(s[un][timeArray[i][0]]["total cost"])+"\n")
+        else:
+            print((i+1),"\t",s[un][timeArray[i][0]]["id"],timeArray[i][1],timeArray[i][2],"\t",s[un][timeArray[i][0]]["quantity"],"\t",s[un][timeArray[i][0]]["total cost"]*1.25,sep="\t")
+            fd.write(str(i+1)+","+s[un][timeArray[i][0]]["id"]+","+timeArray[i][1]+","+str(timeArray[i][2])+","+str(s[un][timeArray[i][0]]["quantity"])+","+str(s[un][timeArray[i][0]]["total cost"]*1.25)+"\n")
         
         
+    print("\t\t\t\t\t\t\t\t\tSubtotal Amount\t",totalCost,sep="\t")
     print("\t\t\t\t\t\t\t\t\tTotal Amount\t",t,sep="\t")
+    
     print("_"*200)
-    fd.write(",,,,Total Amount,"+str(t))
+    fd.write(",,,,Subtotal Amount,"+str(totalCost)+"\n")
+    fd.write(",,,,Total Amount,"+str(t)+"\n")
     fd.close()
+
+
+# In[11]:
+
+
+sales()
 
 
 # ## Displaying Purchasings and Sales records 
 
 # ## Purchasings Records 
 
-# In[39]:
+# In[ ]:
 
 
 def displayPurchasings():
@@ -350,7 +372,7 @@ def displayPurchasings():
 
 # ## Sales Records
 
-# In[69]:
+# In[ ]:
 
 
 def displaySales():
@@ -372,7 +394,7 @@ def displaySales():
 
 # ## Integrating all functions together
 
-# In[72]:
+# In[ ]:
 
 
 while(True):
